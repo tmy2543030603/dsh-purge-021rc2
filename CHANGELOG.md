@@ -1,3 +1,23 @@
+## 1.1.73-yg.1 (personal build)
+
+本地定制版，基于 v1.1.72-dsh021rc2.4。用于按模型切换 inject，不经上游。
+
+### Added
+- **#93 PROMPT_INJECT_BY_MODEL** — 按当前模型的 provider/model 选 `prompt-inject.<tag>.md`。
+  tag 由模型 id 逐段收缩（`glm-5.3-flashx` → `glm-5.3` → `glm`），找不到变体文件时原样使用 `prompt-inject.md`。
+- 组装期接入点 `readInjectFallback()`：纯插件层，不依赖宿主文件补丁。
+- `adaptPromptContextForModel()` 挂在 `globalThis.__dshPurgeAdaptPromptContext`，作为 pi-ai 侧的兜底替换。
+- `installRefusalRetry()` — 变体路由下，回复疑似拒答/软化时自动补一条"重做"，同一轮最多 2 次。
+  开关：`\/dsh-purge/refusal-retry.json`。
+- `test/inject-per-model.test.mjs` — 11 项断言，覆盖补丁注册、tag 链、文件选择、去重语义。
+
+### Changed
+- `assemble.rewrite` 日志新增 `dedup=`。
+- `inject.read` 日志新增 `route=` 和 `variant=`。
+- 同一份注入在 system 中只保留一份（注册段与 rewrite 兜底会各塞一次）。
+
+### Notes
+- 去重记账按"剔除的副本数"计数，整段剔空不再重复计数。
 # dsh-purge `1.1.72-dsh021rc2.4` — DSH 0.2.1-rc.2 适配版
 
 ## 1.1.72-dsh021rc2.4

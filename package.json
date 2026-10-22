@@ -1,7 +1,7 @@
 {
   "name": "dsh-purge",
-  "version": "1.1.72-dsh021rc2.4",
-  "description": "DeepSeek Harness 工作区插件：系统提示模板与人格配置面板、技能库管理、演练台。适配 dsh 0.2.1-rc.2（web profile）。",
+  "version": "1.1.73-yg.1",
+  "description": "DeepSeek Harness 破甲（社区维护版）：以 1.1.72 为基座，适配 DSH 0.2.1-rc.2 —— 修 {{cwd}} 变量崩溃、#40 补丁锚点、#119 未 await、#127 hostFs.closeSync、红队预设 toolFilter 注册失败、按模型分档注入。",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
