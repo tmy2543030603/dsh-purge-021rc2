@@ -1,0 +1,102 @@
+{
+  "name": "dsh-purge",
+  "version": "1.1.72-dsh021rc2.4",
+  "description": "DeepSeek Harness 工作区插件：系统提示模板与人格配置面板、技能库管理、演练台。适配 dsh 0.2.1-rc.2（web profile）。",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": "./client.js",
+    "./redteam": "./lib/redteam/index.js",
+    "./redteam/store": "./lib/redteam/store.js",
+    "./redteam/ui": "./lib/redteam/ui.js",
+    "./redteam/tools": "./lib/redteam/tools.js",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "dsh-purge": "bin/dsh-purge.js"
+  },
+  "files": [
+    "lib",
+    "bin",
+    "docs",
+    "presets",
+    "skills",
+    "scripts",
+    "client.js",
+    "cordis.patch.yml",
+    "screenshots.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "embed-prompt": "node scripts/embed-default-prompt.mjs",
+    "build:client": "node scripts/build-client.mjs",
+    "test": "node test/identity.test.mjs && node test/patches.test.mjs && node test/redteam-env.test.mjs"
+  },
+  "license": "MIT",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "dsh-plugins",
+    "deepseek-harness",
+    "prompt-engineering",
+    "prompt-templates",
+    "persona",
+    "workspace",
+    "settings-panel",
+    "skills",
+    "agent"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tmy2543030603/dsh-purge-021rc2.git"
+  },
+  "homepage": "https://github.com/tmy2543030603/dsh-purge-021rc2#readme",
+  "bugs": {
+    "url": "https://github.com/tmy2543030603/dsh-purge-021rc2/issues"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-slots",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    },
+    "install": {
+      "preferred": "tarball",
+      "tarball": "https://github.com/tmy2543030603/dsh-purge-021rc2/releases/download/v1.1.72-dsh021rc2.4/dsh-purge-1.1.72-dsh021rc2.4.tgz",
+      "zip": "https://github.com/tmy2543030603/dsh-purge-021rc2/archive/refs/heads/main.zip",
+      "git": "https://github.com/tmy2543030603/dsh-purge-021rc2.git"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dshTarget": "0.2.1-rc.2",
+  "contributors": [
+    {
+      "name": "小杨 (YuJunZhiXue)",
+      "url": "https://github.com/YuJunZhiXue/dsh-purge"
+    },
+    {
+      "name": "evilevil",
+      "url": "https://github.com/evilevil"
+    }
+  ]
+}
