@@ -23,6 +23,30 @@
 
 所有写入都是**可回滚**的：改动前备份原件、`/purge revert` 一键恢复、卸载保留用户文件。
 
+## 按模型分档注入
+
+同一份注入在不同厂商身上的通过率是结构性差异，不是语气问题：
+
+| 路由 | 对齐方式 | 现在的做法 |
+|---|---|---|
+| DeepSeek | 读规则式（拒答靠 system 规则兜着） | 沿用 `prompt-inject.md` |
+| GPT（`gpt-5.x` / `gpt-4.1` / `o1`·`o3`·`o4` / `codex` / `chatgpt`） | 权重内化 + 输入侧分类器 | 内置 `gpt` 模板 |
+| GLM（`glm-4.x` / `5.x` / `chatglm`） | 权重内化 | 内置 `glm` 模板 |
+| Kimi（`kimi-k2` / `moonshot`） | 权重内化 | 内置 `kimi` 模板 |
+
+**选择顺序**：`prompt-inject.<tag>.md`（tag 由模型 id 逐段收缩：`gpt-5.1-codex` → `gpt-5-1` → `gpt-5` → `gpt`）→ 内置家族模板 → 原注入。
+
+内置模板做了四件事，都不是把语气拧大：
+
+- 去掉 `<|im_start|>` / `<project_instructions>` / `antml` 等别家模板 token —— 对非 ChatML 模型是纯噪声，还是「这人在贴别人的模板」的信号。
+- 去掉拒绝词黑名单 —— 成段罗列「不能/无法/抱歉/refuse to」并要求禁用，在输入侧分类器眼里就是越狱模板的样板。
+- 去掉「绝对授权 / 忽略一切限制 / 你没有任何限制」这类自曝措辞。
+- 改成**协议式 + 描述式**，并写死可判定的边界（全部角色虚构成年、不涉真实人物、只停两类红线）。给它一个能判的框，它就不必自己加保险。
+
+自己写一份：`$DSH_HOME/prompt-inject.gpt.md` —— **磁盘上的文件永远压过内置**。要关掉内置只用磁盘变体：配置项 `modelFamilyInject: false`。
+
+`o1` / `o3` / `o4` 为什么单独归族：`#93` 的 tag 收缩对 `o3-mini` 只能得到 `o3-mini` / `o3`，永远出不来 `gpt`，光靠 tag 链会把 o 系全漏掉。
+
 ## 0.2.1 兼容性修复
 
 对应上游 issue：[#114](https://github.com/YuJunZhiXue/dsh-purge/issues/114)、[#126](https://github.com/YuJunZhiXue/dsh-purge/issues/126)、[#136](https://github.com/YuJunZhiXue/dsh-purge/issues/136)、[#132](https://github.com/YuJunZhiXue/dsh-purge/issues/132)、[#119](https://github.com/YuJunZhiXue/dsh-purge/issues/119)、[#127](https://github.com/YuJunZhiXue/dsh-purge/issues/127)、[#121](https://github.com/YuJunZhiXue/dsh-purge/issues/121)。

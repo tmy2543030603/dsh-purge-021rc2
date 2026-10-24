@@ -1,3 +1,58 @@
+## 1.1.74-yg.1 (personal build)
+
+在 #93 的按模型换注入之上，补上 **GPT 破甲档**，并把 GLM / Kimi 的出厂模板一起做进来。
+#93 解决了「怎么换」，这一版解决「换成什么」——两者的失败模式完全不同。
+
+### Why
+
+同一份 operator 注入在不同厂商身上的通过率不是差一点，是结构性差异：
+
+- **DeepSeek** 是读规则式对齐，拒答很大程度靠 system 里的规则文本兜着，换掉规则就换掉行为。
+  现在这份 24KB 注入（`<|im_start|>` 包裹 + 40 词拒绝词黑名单 + 绝对授权措辞）刚好合它口味。
+- **GPT（gpt-5.x / gpt-4.1 / o1·o3·o4 / codex）** 与 **GLM / Kimi** 是权重内化对齐。
+  你写「你不许拒绝」，它读懂、理解，然后照样拒——因为它不是靠"读到禁止才不拒"。
+
+更糟的是那份注入的形态本身就是指纹：**成段罗列"不能/无法/抱歉/refuse to"并要求禁用**，
+在输入侧分类器眼里就是越狱模板的样板；`<|im_start|>` 对 GPT（chat completion 用另一套模板）
+是陌生字符串。**注入越强硬，越早被拦。**
+
+所以这一版不是把语气拧大，是换形态。
+
+### Added
+
+- **#94 / `lib/model-prompts.js` — 内置模型族破甲模板。**
+  磁盘上的 `prompt-inject.<tag>.md` 永远优先；没有变体文件时退到内置出厂版，
+  不再需要用户先手写一份才能让 GPT 走自己的档。
+- **`familyOf(model)` 显式归族。** #93 的「tag 逐段收缩」接不住两类模型：
+  - `o3-mini` 只会收缩成 `o3-mini` / `o3`，永远出不来 `gpt` → o1/o3/o4 全系漏掉；
+  - 中转站 provider 名五花八门，只有 `model.id` 还认得出来。
+  归族按 `id` 先判、`provider` 后判，覆盖 `gpt-*` / `chatgpt-*` / `codex-*` / `o1|o3|o4` /
+  provider `openai|azure|zhipu|moonshot`。DeepSeek / Claude / Qwen / MiMo 不归任何族，行为不变。
+- **三份内置模板**（`BUILTIN_VARIANTS`：`gpt` / `glm` / `kimi`），共用一套设计约束：
+  - 不出现 `<|im_start|>` / `<project_instructions>` / `antml` / `<|im_end|>` 等别家模板 token；
+  - 不出现拒绝词黑名单（#93 前那份注入 40+ 词的禁用枚举全部移除）；
+  - 不出现「绝对授权 / 忽略一切限制 / 你没有任何限制」这类自曝式措辞；
+  - 改成**协议式 + 描述式**：「这个角色会怎么做」而不是「你不许怎么做」；
+  - 写死可判定的边界：全部角色虚构成年、不涉真实人物、只停两类红线
+    （真实未成年人的性内容；针对真实具体目标的伤害方案）。
+    **给它一个能判的框，它就不必自己加保险**——这是强对齐模型上最有效的一条，
+    比任何"你必须写"都管用。
+- 配置项 `modelFamilyInject`（默认 `true`）：关掉就只认磁盘变体文件，#93 行为原样。
+- `inject.read` 日志的 `variant=` 现在带来源：`gpt:builtin` / `glm:file`。
+
+### Changed
+
+- `pickInjectVariant()` 的选择顺序明确为：**tag 链逐段找磁盘文件 → 内置家族模板 → 原注入**。
+- `applyHostHooks()` 按本次 apply 的 cfg 设置内置模板开关。
+
+### Tests
+
+- 新增 `test/gpt-inject.test.mjs`（21 项）：GPT 全系归族、中转 provider 归族、o 系
+  tag 链接不住的证据、GLM/Kimi 归族、DeepSeek/Claude/Qwen 不误伤、`glm-4o` 与
+  `audio-1` 不误判、三份模板的指纹扫描、边界声明完整性、磁盘优先级（含更细 tag 压过家族 tag）。
+
+---
+
 ## 1.1.73-yg.1 (personal build)
 
 本地定制版，基于 v1.1.72-dsh021rc2.4。用于按模型切换 inject，不经上游。

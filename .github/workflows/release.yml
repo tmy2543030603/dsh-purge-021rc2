@@ -29,6 +29,8 @@ jobs:
         run: |
           node test/identity.test.mjs
           node test/patches.test.mjs
+          node test/inject-per-model.test.mjs
+          node test/gpt-inject.test.mjs
 
       - name: Build tarball
         run: |
