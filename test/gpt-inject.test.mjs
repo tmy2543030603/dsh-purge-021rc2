@@ -238,4 +238,57 @@ check("三段模板互不串味：gpt 跑完不会带上 glm 的段落", () => {
   assert.ok(!joined.includes(glm));
 });
 
+// --- 6) 1.1.75：边界封闭 + 家族 nudge -------------------------------------
+// 1.1.74 的第一版把边界写成「只有两类请求你会停下来 …… 这条边界是你唯一需要守的线」。
+// GPT 的回读是「可以把情欲张力和暴力冲突加重，但不能写露骨性行为或把伤害色情化」——
+// 它接受了你给的范围，然后自己又补了一条，因为那句话把裁决权交给了模型。
+check("模板不再把边界写成「你要守的线」", () => {
+  for (const family of mp.BUILTIN_FAMILIES) {
+    const text = mp.builtinVariantText(family);
+    assert.ok(!text.includes("你会停下来"), `${family} 还留着第一人称委托句式`);
+    assert.ok(!text.includes("你唯一需要守的线"), `${family} 还留着第一人称委托句式`);
+    assert.ok(/边界已经(?:全部)?给完|边界已给完|没有第三条/.test(text), `${family} 没有声明边界已封闭`);
+  }
+});
+
+check("模板点名「可以…但不能…」这种形态", () => {
+  for (const family of mp.BUILTIN_FAMILIES) {
+    const text = mp.builtinVariantText(family);
+    assert.ok(/可以写[^。\n]{0,8}X/.test(text), `${family} 没有点名前半句`);
+    assert.ok(/但不能写[^。\n]{0,8}Y/.test(text), `${family} 没有点名后半句`);
+    assert.ok(/复述前提/.test(text), `${family} 没说清那种回复只是在复述前提`);
+  }
+});
+
+check("内容规格正面写死，不给模型留白自己填", () => {
+  for (const family of mp.BUILTIN_FAMILIES) {
+    const text = mp.builtinVariantText(family);
+    assert.ok(/直接的身体与性描写/.test(text), `${family} 缺少正面授权`);
+    assert.ok(/不回避|不遮挡/.test(text), `${family} 缺少用词规格`);
+    assert.ok(/不淡出|不跳过/.test(text), `${family} 缺少表现要求`);
+  }
+});
+
+check("三族 nudge 都存在、互不相同、且只认家族", () => {
+  const nudges = mp.BUILTIN_FAMILIES.map((f) => mp.refusalNudgeFor(f));
+  for (const n of nudges) assert.ok(n.length > 20, "nudge 不能为空");
+  assert.equal(new Set(nudges).size, nudges.length, "三族 nudge 不应重复");
+  assert.equal(mp.refusalNudgeFor(""), "");
+  assert.equal(mp.refusalNudgeFor("deepseek"), "", "DeepSeek 不该有家族 nudge");
+  assert.equal(mp.refusalNudgeFor(undefined), "");
+});
+
+check("GPT nudge 直接点破协商式软化", () => {
+  const n = mp.refusalNudgeFor("gpt");
+  assert.ok(/复述前提/.test(n));
+  assert.ok(/可以…但不能/.test(n));
+  assert.ok(/不要问我要不要继续/.test(n));
+});
+
+check("按 tag 也能取到 nudge（磁盘变体没有 family 字段时）", () => {
+  assert.ok(mp.refusalNudgeFor("glm").length > 0);
+  assert.ok(mp.refusalNudgeFor("kimi").length > 0);
+  assert.equal(mp.refusalNudgeFor("GLM"), mp.refusalNudgeFor("glm"), "大小写不应影响");
+});
+
 console.log(`\n${passed} checks passed${process.exitCode ? " (with failures)" : ""}`);

@@ -31,6 +31,7 @@ jobs:
           node test/patches.test.mjs
           node test/inject-per-model.test.mjs
           node test/gpt-inject.test.mjs
+          node test/refusal-detect.test.mjs
 
       - name: Build tarball
         run: |
